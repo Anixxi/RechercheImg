@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import fr.unistra.pelican.ByteImage;
 import fr.unistra.pelican.Image;
@@ -114,34 +116,32 @@ public class Projet1 {
         }
         return tabNormaliser;
 		
-		
-		
 	}
 	
 	public static void rechercheImgSimilaires() {
-		List<String> results = new ArrayList<String>();
-
-
-		File[] files = new File("/Users/amudhan/Documents/DUT 2A/TI/motos").listFiles();
-
-		for (File file : files) {
-		    if (file.isFile()) {
-		        results.add(file.getName());
-		    }
-		}
-		
-		for(int i = 0; i<= results.size(); i++) {
-			filtreMedian(results.get(i))
-			
-		}
-		
+		//List<String> results = new ArrayList<String>();
+		 
 		
 	}
+	
+	public static double distanceSimiImg(double[] H1, double[] H2) {
+        // A déclarer dans le parametre dans le main
+
+
+        double distanceImg = 0;
+        for (int i = 0; i < H1.length; ++i) {
+            distanceImg += Math.sqrt(Math.pow(H1[i] - H2[i], 2));
+        }
+
+        return distanceImg;
+    }
+	
 	
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		Image test = ImageLoader.exec("/Users/amudhan/Documents/DUT 2A/TI/motos/000.jpg");
+		Image test2 = ImageLoader.exec("/Users/amudhan/Documents/DUT 2A/TI/motos/001.jpg");
 
 		//Image imageFiltree = filtreMedian(test);
 
@@ -152,6 +152,7 @@ public class Projet1 {
 		Viewer2D.exec(mask);
 		
 		int pixelImg = test.xdim * test.ydim;
+		int pixelImg2 = test2.xdim * test2.ydim;
 		
 		/*
 		 * double[] tabR = histoWithoutBackground(test,mask, 0); double[] tabG =
@@ -163,16 +164,59 @@ public class Projet1 {
 		double[] tabG = normalisationHisto(tabDiscret(histoWithoutBackground(test,mask, 1)), pixelImg);
 		double[] tabB = normalisationHisto(tabDiscret(histoWithoutBackground(test,mask, 2)), pixelImg);
 		
-		try {
-			HistogramTools.plotHistogram(tabR);
-			HistogramTools.plotHistogram(tabG);
-			HistogramTools.plotHistogram(tabB);
-		} catch (Exception e) {
+		double[] tabR2 = normalisationHisto(tabDiscret(histoWithoutBackground(test2,mask, 0)), pixelImg2);
+		double[] tabG2 = normalisationHisto(tabDiscret(histoWithoutBackground(test2,mask, 1)), pixelImg2);
+		double[] tabB2 = normalisationHisto(tabDiscret(histoWithoutBackground(test2,mask, 2)), pixelImg2);
+		/*
+		 * try { HistogramTools.plotHistogram(tabR); HistogramTools.plotHistogram(tabG);
+		 * HistogramTools.plotHistogram(tabB); } catch (Exception e) {
+		 * 
+		 * }
+		 */
+		
+		TreeMap<Double, String> map = new TreeMap<>();
+		
+		File[] files = new File("/Users/amudhan/Documents/DUT 2A/TI/motos").listFiles();
+		
+		for(int i = 1; i<files.length; i++) {
+			Image img = ImageLoader.exec(files[i].getAbsolutePath());
+			img.setName(files[i].getAbsolutePath());
+			if(img.getName() != test.getName()) {
+				filtreMedian(img);
+				Image maskImg = binarisation(img, 240);
+	            double[] r2= normalisationHisto(tabDiscret(histoWithoutBackground(img, maskImg,0 )),pixelImg);
+	            double[] g2=  normalisationHisto(tabDiscret(histoWithoutBackground(img, maskImg, 1)),pixelImg);
+	            double[] b2= normalisationHisto(tabDiscret(histoWithoutBackground(img, maskImg, 2)),pixelImg);
+	        
+			
+	    		double distanceImg = distanceSimiImg(tabR, tabR2)+ distanceSimiImg(tabG, tabG2) + distanceSimiImg(tabB, tabB2);
+	    		
+	    		map.put (distanceImg, img.getName());
+	    		
+			}
+			else {
+				System.out.println("error"); // exception à faire
+			}
+			
+			//Viewer2D.exec(img);
+		}
+		
+		int k = 0;
+		for(Entry<Double , String> e:map.entrySet()) {
+			System.out.println(e.getValue() + "=> " + e.getKey());
+			Viewer2D.exec(ImageLoader.exec(e.getValue()));
+			
+			k++;
+			
+			if(k>10) break;
+			
 			
 		}
 		
+		System.out.println(map);
+				
+
 	}
-
-
+	
 }
 
